@@ -66,9 +66,14 @@ def naiveSoftmaxLossAndGradient(
     U = outsideVectors #VxW
     u_o = U[o]
 #     num = np.exp(np.dot(u_o,v_c))
-#     den = np.exp(np.dot(U,v_c.reshape((v_c.shape,1))))
-    
-    loss = - np.log(num/np.sum(den))
+#     den = np.exp(np.dot(U,v_c.reshape((v_c.shape[0],1))))
+    val = np.dot(U, v_c)
+    yhat = softmax(val)
+    loss = - np.log(yhat[o])
+    delta = yhat
+    delta[o] -= 1
+    gradCenterVec = np.dot(U.T, delta)
+    gradOutsideVecs = np.dot(delta, v_c.reshape(v_c.shape[0],1).T)
     ### END YOUR CODE
 
     return loss, gradCenterVec, gradOutsideVecs
@@ -116,6 +121,7 @@ def negSamplingLossAndGradient(
 
     ### Please use your implementation of sigmoid in here.
 
+    
     ### END YOUR CODE
 
     return loss, gradCenterVec, gradOutsideVecs
