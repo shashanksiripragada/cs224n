@@ -65,8 +65,6 @@ def naiveSoftmaxLossAndGradient(
     o = outsideWordIdx 
     U = outsideVectors #VxW
     u_o = U[o]
-#     num = np.exp(np.dot(u_o,v_c))
-#     den = np.exp(np.dot(U,v_c.reshape((v_c.shape[0],1))))
     val = np.dot(U, v_c)
     yhat = softmax(val)
     loss = - np.log(yhat[o])
@@ -120,8 +118,23 @@ def negSamplingLossAndGradient(
     ### YOUR CODE HERE (~10 Lines)
 
     ### Please use your implementation of sigmoid in here.
-
+    v_c = centerWordVec #(W,)
+    o = outsideWordIdx 
+    U = outsideVectors #VxW
+    u_o = U[o]
+    u_k = U[negSampleWordIndices]
+    loss = 0.0
+    gradCenterVec = np.zeros(v_c.shape)
+    gradOutsideVecs = np.zeros(U.shape)
+    loss -= np.log(sigmoid(np.dot(u_o, v_c)))
+    loss -= np.sum(np.log(sigmoid(-np.dot(u_k, v_c))))
     
+    gradCenterVec += (sigmoid(np.dot(u_o, v_c))-1) * u_o
+    gradCenterVec -= np.dot((sigmoid(-np.dot(u_k, v_c))-1).T, u_k)
+
+    gradOutsideVecs[o] += (sigmoid(np.dot(u_o, v_c))-1) * v_c
+    gradOutsideVecs[negSampleWordIndices] -= \
+
     ### END YOUR CODE
 
     return loss, gradCenterVec, gradOutsideVecs
