@@ -64,14 +64,13 @@ def naiveSoftmaxLossAndGradient(
     v_c = centerWordVec #(W,)
     o = outsideWordIdx 
     U = outsideVectors #VxW
-    u_o = U[o]
     val = np.dot(U, v_c)
     yhat = softmax(val)
-    loss = - np.log(yhat[o])
+    loss = -np.log(yhat[o])
     delta = yhat
     delta[o] -= 1
     gradCenterVec = np.dot(U.T, delta)
-    gradOutsideVecs = np.dot(delta, v_c.reshape(v_c.shape[0],1).T)
+    gradOutsideVecs = np.dot(delta[:,np.newaxis], v_c[np.newaxis,:])
     ### END YOUR CODE
 
     return loss, gradCenterVec, gradOutsideVecs
@@ -126,15 +125,18 @@ def negSamplingLossAndGradient(
     loss = 0.0
     gradCenterVec = np.zeros(v_c.shape)
     gradOutsideVecs = np.zeros(U.shape)
-    loss -= np.log(sigmoid(np.dot(u_o, v_c)))
-    loss -= np.sum(np.log(sigmoid(-np.dot(u_k, v_c))))
+    z = sigmoid(np.dot(u_o, v_c))
+    z_k = sigmoid(-np.dot(u_k, v_c))
+    loss += -np.log(z)
+    loss += -np.sum(np.log(z_k))
     
-    gradCenterVec += (sigmoid(np.dot(u_o, v_c))-1) * u_o
-    gradCenterVec -= np.dot((sigmoid(-np.dot(u_k, v_c))-1).T, u_k)
+    gradCenterVec += (z-1) * u_o
+    gradCenterVec -= np.dot((z_k-1), u_k)
 
-    gradOutsideVecs[o] += (sigmoid(np.dot(u_o, v_c))-1) * v_c
-    gradOutsideVecs[negSampleWordIndices] -= \
-
+    gradOutsideVecs[o] += (z-1) * v_c
+    
+    for i, ind in enumerate(negSampleWordIndices):
+        gradOutsideVecs[ind] += (1 - z_k[i]) * v_c 
     ### END YOUR CODE
 
     return loss, gradCenterVec, gradOutsideVecs
@@ -180,6 +182,17 @@ def skipgram(currentCenterWord, windowSize, outsideWords, word2Ind,
     gradOutsideVectors = np.zeros(outsideVectors.shape)
 
     ### YOUR CODE HERE (~8 Lines)
+    cur_center_word_idx = word2Ind[currentCenterWord]
+    centerWordVec = centerWordVectors[cur_center_word_idx]
+
+    for o in outsideWords:
+        outsideWordIdx = word2Ind[o]
+        l, gradCenter, gradOutside = \
+        word2vecLossAndGradient(centerWordVec, outsideWordIdx, \
+                                outsideVectors, dataset)
+        loss += l
+        gradCenterVecs[cur_center_word_idx] += gradCenter
+        gradOutsideVectors += gradOutside
 
     ### END YOUR CODE
     
