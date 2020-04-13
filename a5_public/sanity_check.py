@@ -6,6 +6,7 @@ CS224N 2019-20: Homework 5
 sanity_check.py: sanity checks for assignment 5
 Usage:
     sanity_check.py 1e
+    sanity_check.py 1f
     sanity_check.py 1h
     sanity_check.py 2a
     sanity_check.py 2b
@@ -28,6 +29,7 @@ from vocab import Vocab, VocabEntry
 from char_decoder import CharDecoder
 from nmt_model import NMT
 
+from highway import Highway
 
 import torch
 import torch.nn as nn
@@ -69,6 +71,24 @@ def question_1e_sanity_check():
 
     print("Sanity Check Passed for Question 1e: To Input Tensor Char!")
     print("-"*80)
+
+def question_1f_sanity_check():
+    """ Sanity check for highway.py
+        basic shape check
+    """
+
+    print("-" * 80)
+    print("Running Sanity Check for Question 1f: Highway")
+    print("-" * 80)
+
+    X_conv_out = torch.randn((5, 4, 3))
+    highway = Highway(X_conv_out.size(-1))
+    X_highway = highway(X_conv_out)
+    assert X_conv_out.size() == X_highway.size(
+    ), "Output size should be: {}\n but is {}\n".format(X_conv_out.size(), X_highway.size())
+
+    print("Shape is right!")
+    print("-" * 80)
 
 def question_1h_sanity_check(model):
     """ Sanity check for model_embeddings.py
@@ -169,6 +189,8 @@ def main():
 
     if args['1e']:
         question_1e_sanity_check()
+    elif args['1f']:
+        question_1f_sanity_check()
     elif args['1h']:
         question_1h_sanity_check(model)
     elif args['2a']:
