@@ -9,7 +9,7 @@ Sahil Chopra <schopra8@stanford.edu>
 Anand Dhoot <anandd@stanford.edu>
 Michael Hahn <mhahn2@stanford.edu>
 """
-
+import torch
 import torch.nn as nn
 
 # Do not change these imports; your module names should be
@@ -39,10 +39,21 @@ class ModelEmbeddings(nn.Module):
         super(ModelEmbeddings, self).__init__()
 
         ### YOUR CODE HERE for part 1h
-
+        self.word_embed_size = word_embed_size
+        self.vocab = vocab
+        self.x_char_emb = nn.Embedding(num_embeddings=len(self.vocab.char2id), 
+                                    embedding_dim=50, 
+                                    padding_idx=self.vocab.char_pad)
+        self.cnn = CNN(num_filters=self.word_embed_size,
+                kernel_size=5,
+                max_word_size=21,
+                char_embed_size=50,
+                padding=1)
+        self.highway = Highway(word_embed_size=self.word_embed_size)
+        self.dropout = nn.Dropout(p=0.3)
         ### END YOUR CODE
 
-    def forward(self, input):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         """
         Looks up character-based CNN embeddings for the words in a batch of sentences.
         @param input: Tensor of integers of shape (sentence_length, batch_size, max_word_length) where
@@ -52,6 +63,18 @@ class ModelEmbeddings(nn.Module):
             CNN-based embeddings for each word of the sentences in the batch
         """
         ### YOUR CODE HERE for part 1h
+        x_char_emb = self.x_char_emb(input)
+
+        # cnn requires BATCH_SIZE,char_embed_size,max_word_size
+        sen_len, batch_size, max_word_length, char_embed_size = x_char_emb.shape
+        cnn_shape = (sen_len*batch_size, max_word_length, char_embed_size)
+        x_reshaped = x_char_emb.view(cnn_shape).transpose(1,2)
+        
+        x_conv_out = self.cnn(x_reshaped)
+        x_highway = self.highway(x_conv_out)
+        x_word_emb = self.dropout(x_highway)
+        x_word_emb = x_word_emb.view(sen_len, batch_size, self.word_embed_size)
+        return x_word_emb
 
         ### END YOUR CODE
 
