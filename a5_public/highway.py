@@ -32,8 +32,5 @@ class Highway(nn.Module):
         x_highway = torch.mul(x_gate, x_proj) + torch.mul(1-x_gate, x_conv_out)
 
         return x_highway 
-
-
-
     ### END YOUR CODE
 

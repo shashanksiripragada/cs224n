@@ -7,6 +7,7 @@ sanity_check.py: sanity checks for assignment 5
 Usage:
     sanity_check.py 1e
     sanity_check.py 1f
+    sanity_check.py 1g
     sanity_check.py 1h
     sanity_check.py 2a
     sanity_check.py 2b
@@ -30,6 +31,7 @@ from char_decoder import CharDecoder
 from nmt_model import NMT
 
 from highway import Highway
+from cnn import CNN
 
 import torch
 import torch.nn as nn
@@ -89,6 +91,29 @@ def question_1f_sanity_check():
 
     print("Shape is right!")
     print("-" * 80)
+
+def question_1g_sanity_check():
+    """ Sanity check for cnn.py
+        basic shape check
+    """
+    print("-" * 80)
+    print("Running Sanity Check for Question 1g: CNN")
+    print("-" * 80)
+
+    max_word_size = 10
+    char_embed_size = 50
+
+    x = torch.zeros(BATCH_SIZE,char_embed_size,max_word_size)
+    print("input size： "+str(x.shape))
+
+    cnn = CNN(num_filters=EMBED_SIZE, kernel_size=5,  max_word_size=max_word_size,
+              char_embed_size=char_embed_size, padding=1)
+    result = cnn.forward(x)
+
+    print("output size :",str(result.shape) )
+
+    assert(result.shape == (BATCH_SIZE, EMBED_SIZE))
+    print("Sanity Check Passed for Question 1g:cnn")
 
 def question_1h_sanity_check(model):
     """ Sanity check for model_embeddings.py
@@ -191,6 +216,8 @@ def main():
         question_1e_sanity_check()
     elif args['1f']:
         question_1f_sanity_check()
+    elif args['1g']:
+        question_1g_sanity_check()
     elif args['1h']:
         question_1h_sanity_check(model)
     elif args['2a']:
