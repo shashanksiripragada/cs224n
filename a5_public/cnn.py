@@ -14,9 +14,7 @@ class CNN(nn.Module):
     def __init__(self, 
                 num_filters,
                 kernel_size,
-                max_word_size,
-                char_embed_size,
-                padding):
+                char_embed_size):
         """
         Initialize char CNN module
         @param num_filters (int): No. of output channels or word_embed_size
@@ -29,14 +27,10 @@ class CNN(nn.Module):
 
         self.num_filters = num_filters
         self.kernel_size = kernel_size
-        self.max_word_size = max_word_size
         self.char_embed_size = char_embed_size 
-        self.padding = padding
         self.conv1d = nn.Conv1d(in_channels=char_embed_size, out_channels=num_filters, 
-                                kernel_size=kernel_size, padding=padding)
+                                kernel_size=kernel_size, padding=1)
 
-        pool_size = max_word_size-kernel_size+1+2*padding
-        self.maxpool = nn.MaxPool1d(kernel_size=pool_size)
 
     def forward(self, x_reshaped: torch.Tensor) -> torch.Tensor:
         """
@@ -45,6 +39,9 @@ class CNN(nn.Module):
         @return x_conv_out (Tensor): output of forward pass
         """
         x_conv = self.conv1d(x_reshaped)
+        max_word_size = x_reshaped.shape[-1]
+        pool_size = max_word_size+(2*1)-self.kernel_size+1
+        self.maxpool = nn.MaxPool1d(pool_size)
         x_conv_out = self.maxpool(F.relu(x_conv))
         return torch.squeeze(x_conv_out, -1)
 

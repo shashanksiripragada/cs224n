@@ -42,13 +42,11 @@ class ModelEmbeddings(nn.Module):
         self.word_embed_size = word_embed_size
         self.vocab = vocab
         self.x_char_emb = nn.Embedding(num_embeddings=len(self.vocab.char2id), 
-                                    embedding_dim=50, 
-                                    padding_idx=self.vocab.char_pad)
+                                        embedding_dim=50, 
+                                        padding_idx=self.vocab.char_pad)
         self.cnn = CNN(num_filters=self.word_embed_size,
-                kernel_size=5,
-                max_word_size=21,
-                char_embed_size=50,
-                padding=1)
+                        kernel_size=5,
+                        char_embed_size=50)
         self.highway = Highway(word_embed_size=self.word_embed_size)
         self.dropout = nn.Dropout(p=0.3)
         ### END YOUR CODE

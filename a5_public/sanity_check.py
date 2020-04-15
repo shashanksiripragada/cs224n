@@ -106,8 +106,7 @@ def question_1g_sanity_check():
     x = torch.zeros(BATCH_SIZE,char_embed_size,max_word_size)
     print("input size： "+str(x.shape))
 
-    cnn = CNN(num_filters=EMBED_SIZE, kernel_size=5,  max_word_size=max_word_size,
-              char_embed_size=char_embed_size, padding=1)
+    cnn = CNN(num_filters=EMBED_SIZE, kernel_size=5, char_embed_size=char_embed_size)
     result = cnn.forward(x)
 
     print("output size :",str(result.shape) )
