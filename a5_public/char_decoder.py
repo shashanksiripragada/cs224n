@@ -63,7 +63,7 @@ class CharDecoder(nn.Module):
 
         CrossEntropy = nn.CrossEntropyLoss(
             reduction="sum",
-            ignore_index=self.target_vocab.char2id['<pad>']
+            ignore_index=self.target_vocab.char_pad
         )
         s_t = s_t.view(-1, s_t.shape[-1])
         X_target = X_target.view(-1)
@@ -91,6 +91,37 @@ class CharDecoder(nn.Module):
         ###      - You may find torch.argmax or torch.argmax useful
         ###      - We use curly brackets as start-of-word and end-of-word characters. That is, use the character '{' for <START> and '}' for <END>.
         ###        Their indices are self.target_vocab.start_of_word and self.target_vocab.end_of_word, respectively.
+        batch_size = initialStates[0].shape[1]
 
+
+        index2char = self.target_vocab.id2char
+        start_word_index = self.target_vocab.char2id['{']
+        end_word_index = self.target_vocab.char2id['}']
+
+        input = torch.tensor([start_word_index for _ in range(batch_size)], device=device).unsqueeze(0)
+
+        dec_hidden = initialStates
+
+        decodeTuple = [["", False] for _ in range(batch_size)]
+
+        for step in range(max_length):
+
+            s_t, dec_hidden = self.forward(input, dec_hidden)
+            # p_t = F.softmax(s_t, dim=2)
+            input = s_t.argmax(dim=2)   # last_precict_char_index
+
+
+            for batch, predict_char in enumerate(input.detach().squeeze(0)):
+                if not decodeTuple[batch][1]:
+                    current_char_index = predict_char.item()
+                    if current_char_index != end_word_index:
+                        decodeTuple[batch][0] += index2char[current_char_index]
+                    else:
+                        # 预测到 '}' 即此单词预测完毕
+                        decodeTuple[batch][1] = True
+
+
+        decodedWords = [i[0] for i in decodeTuple]
+        return decodedWords
         ### END YOUR CODE
 
