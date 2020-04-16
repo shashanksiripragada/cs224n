@@ -35,7 +35,11 @@ class CharDecoder(nn.Module):
         """
         ### YOUR CODE HERE for part 2a
         ### TODO - Implement the forward pass of the character decoder.
+        char_emb = self.decoderCharEmb(input) #len, batch_size, char_embed
+        h_t, dec_hidden = self.charDecoder(char_emb, dec_hidden)
+        s_t = self.char_output_projection(h_t)
 
+        return s_t, dec_hidden
         ### END YOUR CODE
 
     def train_forward(self, char_sequence, dec_hidden=None):
@@ -53,7 +57,19 @@ class CharDecoder(nn.Module):
         ###       - char_sequence corresponds to the sequence x_1 ... x_{n+1} (e.g., <START>,m,u,s,i,c,<END>). Read the handout about how to construct input and target sequence of CharDecoderLSTM.
         ###       - Carefully read the documentation for nn.CrossEntropyLoss and our handout to see what this criterion have already included:
         ###             https://pytorch.org/docs/stable/nn.html#crossentropyloss
+        X_input = char_sequence[:-1]
+        X_target = char_sequence[1:]
+        s_t, dec_hidden = self.forward(X_input, dec_hidden)
 
+        CrossEntropy = nn.CrossEntropyLoss(
+            reduction="sum",
+            ignore_index=self.target_vocab.char2id['<pad>']
+        )
+        s_t = s_t.view(-1, s_t.shape[-1])
+        X_target = X_target.view(-1)
+
+        loss = CrossEntropy(s_t, X_target)
+        return loss
         ### END YOUR CODE
 
     def decode_greedy(self, initialStates, device, max_length=21):
